@@ -13,6 +13,15 @@ sys_fork(void)
   return fork();
 }
 
+void
+sys_policy(void)
+{
+  int num;
+
+  if(argint(0, &num) >= 0)
+    policy(num);
+}
+
 int
 sys_detach(void)
 {

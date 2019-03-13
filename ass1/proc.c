@@ -279,6 +279,12 @@ exit(int status)
   panic("zombie exit");
 }
 
+void
+policy(int num)
+{
+  panic("not implemented");
+}
+
 int
 detach(int pid)
 {
