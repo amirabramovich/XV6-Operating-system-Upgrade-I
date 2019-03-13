@@ -279,6 +279,26 @@ exit(int status)
   panic("zombie exit");
 }
 
+int
+detach(int pid)
+{
+  struct proc *curproc = myproc();
+  struct proc *p;
+  
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid){
+      if(p->parent == curproc){
+        p->parent = initproc;
+        release(&ptable.lock);
+        return 0;
+      }
+    }
+  }
+  release(&ptable.lock);
+  return -1;
+}
+
 // Wait for a child process to exit and return its pid.
 // Return -1 if this process has no children.
 int
