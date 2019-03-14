@@ -85,6 +85,7 @@ argstr(int n, char **pp)
 extern int sys_chdir(void);
 extern int sys_close(void);
 extern int sys_policy(void);
+extern int sys_priority(void);
 extern int sys_detach(void);
 extern int sys_dup(void);
 extern int sys_exec(void);
@@ -130,6 +131,7 @@ static int (*syscalls[])(void) = {
 [SYS_close]   sys_close,
 [SYS_detach]  sys_detach,
 [SYS_policy]  sys_policy,
+[SYS_priority]  sys_priority,
 };
 
 void

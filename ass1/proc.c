@@ -244,8 +244,6 @@ exit(int status)
   if(curproc == initproc)
     panic("init exiting");
 
-  curproc->status = status;
-
   // Close all open files.
   for(fd = 0; fd < NOFILE; fd++){
     if(curproc->ofile[fd]){
@@ -260,6 +258,9 @@ exit(int status)
   curproc->cwd = 0;
 
   acquire(&ptable.lock);
+
+  // Update status
+  curproc->status = status;
 
   // Parent might be sleeping in wait(0).
   wakeup1(curproc->parent);
@@ -283,6 +284,15 @@ void
 policy(int num)
 {
   panic("not implemented");
+}
+
+void
+priority(int num)
+{
+  struct proc *curproc = myproc();
+  acquire(&ptable.lock);
+  curproc->priority = num;
+  release(&ptable.lock);
 }
 
 int
@@ -333,6 +343,7 @@ wait(int *status)
         p->name[0] = 0;
         p->killed = 0;
         p->state = UNUSED;
+        // Pass status if pointer is not null
         if(status != 0)
           *status = p->status; 
         release(&ptable.lock);

@@ -113,6 +113,7 @@ struct cpu*     mycpu(void);
 struct proc*    myproc();
 void            pinit(void);
 void            policy(int);
+void            priority(int);
 void            procdump(void);
 void            scheduler(void) __attribute__((noreturn));
 void            sched(void);

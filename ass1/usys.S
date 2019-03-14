@@ -10,6 +10,7 @@
 
 SYSCALL(fork)
 SYSCALL(policy)
+SYSCALL(priority)
 SYSCALL(detach)
 SYSCALL(exit)
 SYSCALL(wait)

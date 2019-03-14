@@ -22,6 +22,15 @@ sys_policy(void)
     policy(num);
 }
 
+void
+sys_priority(void)
+{
+  int num;
+
+  if(argint(0, &num) >= 0)
+    priority(num);
+}
+
 int
 sys_detach(void)
 {
