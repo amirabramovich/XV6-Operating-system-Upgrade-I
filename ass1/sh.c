@@ -83,22 +83,19 @@ runcmd(struct cmd *cmd)
     ecmd = (struct execcmd*)cmd;
     if(ecmd->argv[0] == 0)
       exit(0);
+    if((ecmd->argv[0])[0] == '/')
+      exec(ecmd->argv[0], ecmd->argv);
     fd = open("/path",O_RDONLY);
     read(fd, path, 512);
     close(fd);
-    // printf(2, "path is: %s\n", path);
     first = 0;
     while(first<strlen(path)-1){
       last = indexof2(path,':',first);
-      // printf(2, "first is: %d last is %d\n", first,last);
       memset(buffer, 0, 512);
       subpath = strcpy2(buffer, path, first, last);
-      // printf(2, "subpath is %s\n", subpath);
       first = last+1;
-      // printf(2, "ecmd->argv[0] is %s\n", ecmd->argv[0]);
       memset(buffer2, 0, 512);
       command = append(subpath,ecmd->argv[0],buffer2);
-      // printf(2, "command is %s\n", command);
       exec(command, ecmd->argv);
     }
     printf(2, "exec %s failed\n", ecmd->argv[0]);
