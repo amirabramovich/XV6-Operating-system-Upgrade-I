@@ -13,4 +13,8 @@
 #define LOGSIZE      (MAXOPBLOCKS*3)  // max data blocks in on-disk log
 #define NBUF         (MAXOPBLOCKS*3)  // size of disk block cache
 #define FSSIZE       1000  // size of file system in blocks
+#define ROUND          1  //  Round Robin scheduling policy
+#define PRIORITY       2  //  Priority scheduling policy
+#define EXPRIORITY     3  //  Extended Priority scheduling policy
+
 

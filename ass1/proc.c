@@ -13,8 +13,7 @@ extern RoundRobinQueue rrq;
 extern RunningProcessesHolder rpholder;
 
 long long getAccumulator(struct proc *p) {
-	//Implement this function, remove the panic line.
-	panic("getAccumulator: not implemented\n");
+	return p->accumulator;
 }
 
 struct {
@@ -25,6 +24,7 @@ struct {
 static struct proc *initproc;
 
 int nextpid = 1;
+int pol = ROUND;
 extern void forkret(void);
 extern void trapret(void);
 
@@ -75,6 +75,27 @@ myproc(void) {
   return p;
 }
 
+// Returns the minimum value of the accumulator fields of 
+// all the runnable / running processes
+// Assumes the ptable is locked
+long long getMinAccumulator() {
+  long long minacc = 9223372036854775807;
+  int runnables = 0;
+  struct proc *p;
+
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->state == RUNNABLE || p->state == RUNNING){
+      if(p->accumulator < minacc){
+        minacc = p->accumulator;
+      }
+      runnables++;
+    }
+  }
+  if(runnables > 0)
+    return minacc;
+  return 0;
+}
+
 //PAGEBREAK: 32
 // Look in the process table for an UNUSED proc.
 // If found, change state to EMBRYO and initialize
@@ -98,6 +119,10 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+  p->priority = 5;
+
+  if (pol == PRIORITY || pol == EXPRIORITY)
+    p->accumulator = getMinAccumulator();
 
   release(&ptable.lock);
 
@@ -283,7 +308,23 @@ exit(int status)
 void
 policy(int num)
 {
-  panic("not implemented");
+  struct proc *p;
+  pol = num;
+  switch(pol) {
+    case ROUND:
+      acquire(&ptable.lock);
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+        p->accumulator = 0;
+      release(&ptable.lock);
+      break;
+    case PRIORITY:
+      acquire(&ptable.lock);
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+        if(p->priority == 0)
+          p->priority = 1;
+      release(&ptable.lock);
+      break;
+  }
 }
 
 void
@@ -511,8 +552,11 @@ wakeup1(void *chan)
   struct proc *p;
 
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-    if(p->state == SLEEPING && p->chan == chan)
+    if(p->state == SLEEPING && p->chan == chan){
       p->state = RUNNABLE;
+      if (pol == PRIORITY || pol == EXPRIORITY)
+        p->accumulator = getMinAccumulator();
+      }
 }
 
 // Wake up all processes sleeping on chan.
@@ -537,8 +581,11 @@ kill(int pid)
     if(p->pid == pid){
       p->killed = 1;
       // Wake process from sleep if necessary.
-      if(p->state == SLEEPING)
+      if(p->state == SLEEPING){
         p->state = RUNNABLE;
+        if (pol == PRIORITY || pol == EXPRIORITY)
+          p->accumulator = getMinAccumulator();
+      }
       release(&ptable.lock);
       return 0;
     }
