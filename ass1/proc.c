@@ -436,27 +436,30 @@ scheduler(void)
     acquire(&ptable.lock);
     switch(pol) {
       default:
-        p = rrq.dequeue();
-        if(p==null)
-          panic("dequeue null");
-        if(p->state != RUNNABLE)
-          panic("dequeue non runnable");
+        while(!rrq.isEmpty()){
+          if(rrq.isEmpty())
+            panic("rrq empty");
+          p = rrq.dequeue();
+          if(p == null)
+            panic("dequeue null");
+          if(p->state != RUNNABLE)
+            panic("dequeue non runnable");
+          // Switch to chosen process.  It is the process's job
+          // to release ptable.lock and then reacquire it
+          // before jumping back to us.
+          c->proc = p;
+          switchuvm(p);
+          p->state = RUNNING;
+
+          swtch(&(c->scheduler), p->context);
+          switchkvm();
+
+          // Process is done running for now.
+          // It should have changed its p->state before coming back.
+          c->proc = 0;
+        }
         break;
     }
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      c->proc = p;
-      switchuvm(p);
-      p->state = RUNNING;
-
-      swtch(&(c->scheduler), p->context);
-      switchkvm();
-
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      c->proc = 0;
-    
 
     // for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     //   if(p->state != RUNNABLE)
@@ -511,11 +514,12 @@ sched(void)
 void
 yield(void)
 {
+  struct proc *p = myproc();
   acquire(&ptable.lock);  //DOC: yieldlock
-  myproc()->state = RUNNABLE;
+  p->state = RUNNABLE;
   switch(pol) {
     case ROUND:
-      rrq.enqueue(myproc());
+      rrq.enqueue(p);
       break;
   }
   sched();
@@ -628,7 +632,7 @@ kill(int pid)
       if(p->state == SLEEPING){
         p->state = RUNNABLE;
         switch(pol) {
-          case ROUND:
+          case ROUND:          
             rrq.enqueue(p);
             break;
         }
