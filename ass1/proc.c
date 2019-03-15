@@ -426,6 +426,29 @@ scheduler(void)
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     switch(pol) {
+      case PRIORITY:
+        while(!pq.isEmpty()){
+          p = pq.extractMin();
+          if(p == null)
+            panic("dequeue null");
+          if(p->state != RUNNABLE)
+            panic("dequeue non runnable");
+          // Switch to chosen process.  It is the process's job
+          // to release ptable.lock and then reacquire it
+          // before jumping back to us.
+          c->proc = p;
+          switchuvm(p);
+          p->state = RUNNING;
+          rpholder.add(p);
+          
+          swtch(&(c->scheduler), p->context);
+          switchkvm();
+
+          // Process is done running for now.
+          // It should have changed its p->state before coming back.
+          c->proc = 0;
+        }
+      break;
       default:
         while(!rrq.isEmpty()){
           p = rrq.dequeue();
@@ -439,6 +462,7 @@ scheduler(void)
           c->proc = p;
           switchuvm(p);
           p->state = RUNNING;
+          rpholder.add(p);
 
           swtch(&(c->scheduler), p->context);
           switchkvm();
