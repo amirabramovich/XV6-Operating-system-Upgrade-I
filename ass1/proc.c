@@ -184,6 +184,11 @@ userinit(void)
   acquire(&ptable.lock);
 
   p->state = RUNNABLE;
+  switch(pol) {
+    case ROUND:
+      rrq.enqueue(p);
+      break;
+  }
 
   release(&ptable.lock);
 }
@@ -250,6 +255,11 @@ fork(void)
   acquire(&ptable.lock);
 
   np->state = RUNNABLE;
+  switch(pol) {
+    case ROUND:
+      rrq.enqueue(np);
+      break;
+  }
 
   release(&ptable.lock);
 
@@ -424,10 +434,15 @@ scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
-
+    switch(pol) {
+      default:
+        p = rrq.dequeue();
+        if(p==null)
+          panic("dequeue null");
+        if(p->state != RUNNABLE)
+          panic("dequeue non runnable");
+        break;
+    }
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
@@ -441,7 +456,26 @@ scheduler(void)
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
-    }
+    
+
+    // for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    //   if(p->state != RUNNABLE)
+    //     continue;
+
+    //   // Switch to chosen process.  It is the process's job
+    //   // to release ptable.lock and then reacquire it
+    //   // before jumping back to us.
+    //   c->proc = p;
+    //   switchuvm(p);
+    //   p->state = RUNNING;
+
+    //   swtch(&(c->scheduler), p->context);
+    //   switchkvm();
+
+    //   // Process is done running for now.
+    //   // It should have changed its p->state before coming back.
+    //   c->proc = 0;
+    // }
     release(&ptable.lock);
 
   }
@@ -479,6 +513,11 @@ yield(void)
 {
   acquire(&ptable.lock);  //DOC: yieldlock
   myproc()->state = RUNNABLE;
+  switch(pol) {
+    case ROUND:
+      rrq.enqueue(myproc());
+      break;
+  }
   sched();
   release(&ptable.lock);
 }
@@ -554,6 +593,11 @@ wakeup1(void *chan)
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->state == SLEEPING && p->chan == chan){
       p->state = RUNNABLE;
+      switch(pol) {
+        case ROUND:
+          rrq.enqueue(p);
+          break;
+      }
       if (pol == PRIORITY || pol == EXPRIORITY)
         p->accumulator = getMinAccumulator();
       }
@@ -583,6 +627,11 @@ kill(int pid)
       // Wake process from sleep if necessary.
       if(p->state == SLEEPING){
         p->state = RUNNABLE;
+        switch(pol) {
+          case ROUND:
+            rrq.enqueue(p);
+            break;
+        }
         if (pol == PRIORITY || pol == EXPRIORITY)
           p->accumulator = getMinAccumulator();
       }
