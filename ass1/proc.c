@@ -298,12 +298,14 @@ void
 policy(int num)
 {
   struct proc *p;
-  pol = num;
-  switch(pol) {
+  switch(num) {
     case ROUND:
       acquire(&ptable.lock);
       for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
         p->accumulator = 0;
+      if(pol == PRIORITY || pol == EXPRIORITY)
+        pq.switchToRoundRobinPolicy();
+      pol = num;
       release(&ptable.lock);
       break;
     case PRIORITY:
@@ -311,6 +313,16 @@ policy(int num)
       for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
         if(p->priority == 0)
           p->priority = 1;
+      if(pol == ROUND)
+        rrq.switchToPriorityQueuePolicy();
+      pol = num;
+      release(&ptable.lock);
+      break;
+    case EXPRIORITY:
+      acquire(&ptable.lock);
+      if(pol == ROUND)
+        rrq.switchToPriorityQueuePolicy();
+      pol = num;
       release(&ptable.lock);
       break;
   }
