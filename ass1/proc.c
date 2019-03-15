@@ -80,10 +80,10 @@ void
 updateAccumulator(struct proc *p){
   if (pol == PRIORITY || pol == EXPRIORITY){
     long long pqmin, rpholdermin;
-    pq.getMinAccumulator(&pqmin);
-    rpholder.getMinAccumulator(&rpholdermin);
-    if(pqmin){
-     if(rpholdermin){
+    boolean a = pq.getMinAccumulator(&pqmin);
+    boolean b = rpholder.getMinAccumulator(&rpholdermin);
+    if(a){
+     if(b){
       if(pqmin<rpholdermin)
        p->accumulator = pqmin;
       else
@@ -92,7 +92,7 @@ updateAccumulator(struct proc *p){
      else
       p->accumulator = pqmin;
     }
-    else if (rpholdermin)
+    else if (b)
       p->accumulator = rpholdermin;
     else
       p->accumulator = 0;
