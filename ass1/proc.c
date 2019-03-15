@@ -75,27 +75,6 @@ myproc(void) {
   return p;
 }
 
-// Returns the minimum value of the accumulator fields of 
-// all the runnable / running processes
-// Assumes the ptable is locked
-long long getMinAccumulator() {
-  long long minacc = 9223372036854775807;
-  int runnables = 0;
-  struct proc *p;
-
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    if(p->state == RUNNABLE || p->state == RUNNING){
-      if(p->accumulator < minacc){
-        minacc = p->accumulator;
-      }
-      runnables++;
-    }
-  }
-  if(runnables > 0)
-    return minacc;
-  return 0;
-}
-
 //PAGEBREAK: 32
 // Look in the process table for an UNUSED proc.
 // If found, change state to EMBRYO and initialize
@@ -121,8 +100,8 @@ found:
   p->pid = nextpid++;
   p->priority = 5;
 
-  if (pol == PRIORITY || pol == EXPRIORITY)
-    p->accumulator = getMinAccumulator();
+  // if (pol == PRIORITY || pol == EXPRIORITY)
+  //   p->accumulator = getMinAccumulator();
 
   release(&ptable.lock);
 
@@ -437,8 +416,6 @@ scheduler(void)
     switch(pol) {
       default:
         while(!rrq.isEmpty()){
-          if(rrq.isEmpty())
-            panic("rrq empty");
           p = rrq.dequeue();
           if(p == null)
             panic("dequeue null");
@@ -602,9 +579,9 @@ wakeup1(void *chan)
           rrq.enqueue(p);
           break;
       }
-      if (pol == PRIORITY || pol == EXPRIORITY)
-        p->accumulator = getMinAccumulator();
-      }
+      // if (pol == PRIORITY || pol == EXPRIORITY)
+      //   p->accumulator = getMinAccumulator();
+    }
 }
 
 // Wake up all processes sleeping on chan.
@@ -636,8 +613,8 @@ kill(int pid)
             rrq.enqueue(p);
             break;
         }
-        if (pol == PRIORITY || pol == EXPRIORITY)
-          p->accumulator = getMinAccumulator();
+        // if (pol == PRIORITY || pol == EXPRIORITY)
+        //   p->accumulator = getMinAccumulator();
       }
       release(&ptable.lock);
       return 0;
