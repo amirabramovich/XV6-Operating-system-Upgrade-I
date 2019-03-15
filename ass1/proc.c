@@ -289,6 +289,9 @@ exit(int status)
   }
 
   // Jump into the scheduler, never to return.
+  if(curproc->state == RUNNING)
+    if(!rpholder.remove(curproc))
+      panic("remove running");
   curproc->state = ZOMBIE;
   sched();
   panic("zombie exit");
@@ -440,7 +443,7 @@ scheduler(void)
           switchuvm(p);
           p->state = RUNNING;
           rpholder.add(p);
-          
+
           swtch(&(c->scheduler), p->context);
           switchkvm();
 
@@ -529,6 +532,9 @@ yield(void)
 {
   struct proc *p = myproc();
   acquire(&ptable.lock);  //DOC: yieldlock
+  if(p->state == RUNNING)
+    if(!rpholder.remove(p))
+      panic("remove running");
   p->state = RUNNABLE;
   switch(pol) {
     case ROUND:
@@ -585,6 +591,9 @@ sleep(void *chan, struct spinlock *lk)
   }
   // Go to sleep.
   p->chan = chan;
+  if(p->state == RUNNING)
+    if(!rpholder.remove(p))
+      panic("remove running");
   p->state = SLEEPING;
 
   sched();
