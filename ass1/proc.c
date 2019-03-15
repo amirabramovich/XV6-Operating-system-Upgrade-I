@@ -190,6 +190,9 @@ userinit(void)
     case ROUND:
       rrq.enqueue(p);
       break;
+    case PRIORITY:
+      pq.put(p);
+      break;
   }
 
   release(&ptable.lock);
@@ -260,6 +263,9 @@ fork(void)
   switch(pol) {
     case ROUND:
       rrq.enqueue(np);
+      break;
+    case PRIORITY:
+      pq.put(np);
       break;
   }
 
@@ -497,7 +503,6 @@ scheduler(void)
           // It should have changed its p->state before coming back.
           c->proc = 0;
         }
-        break;
     }
 
     // for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
@@ -650,9 +655,11 @@ wakeup1(void *chan)
         case ROUND:
           rrq.enqueue(p);
           break;
+        case PRIORITY:
+          pq.put(p);
+          break;
       }
-      // if (pol == PRIORITY || pol == EXPRIORITY)
-      //   p->accumulator = getMinAccumulator();
+      updateAccumulator(p);
     }
 }
 
@@ -684,9 +691,11 @@ kill(int pid)
           case ROUND:          
             rrq.enqueue(p);
             break;
+          case PRIORITY:
+            pq.put(p);
+            break;
         }
-        // if (pol == PRIORITY || pol == EXPRIORITY)
-        //   p->accumulator = getMinAccumulator();
+        updateAccumulator(p);
       }
       release(&ptable.lock);
       return 0;
