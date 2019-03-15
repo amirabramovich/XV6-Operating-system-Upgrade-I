@@ -25,6 +25,7 @@ static struct proc *initproc;
 
 int nextpid = 1;
 int pol = ROUND;
+uint time = 0;
 extern void forkret(void);
 extern void trapret(void);
 
@@ -75,6 +76,29 @@ myproc(void) {
   return p;
 }
 
+void
+updateAccumulator(struct proc *p){
+  if (pol == PRIORITY || pol == EXPRIORITY){
+    long long pqmin, rpholdermin;
+    pq.getMinAccumulator(&pqmin);
+    rpholder.getMinAccumulator(&rpholdermin);
+    if(pqmin){
+     if(rpholdermin){
+      if(pqmin<rpholdermin)
+       p->accumulator = pqmin;
+      else
+       p->accumulator = rpholdermin;
+     }
+     else
+      p->accumulator = pqmin;
+    }
+    else if (rpholdermin)
+      p->accumulator = rpholdermin;
+    else
+      p->accumulator = 0;
+  }
+}
+
 //PAGEBREAK: 32
 // Look in the process table for an UNUSED proc.
 // If found, change state to EMBRYO and initialize
@@ -100,8 +124,7 @@ found:
   p->pid = nextpid++;
   p->priority = 5;
 
-  // if (pol == PRIORITY || pol == EXPRIORITY)
-  //   p->accumulator = getMinAccumulator();
+  updateAccumulator(p);
 
   release(&ptable.lock);
 
@@ -539,6 +562,10 @@ yield(void)
   switch(pol) {
     case ROUND:
       rrq.enqueue(p);
+      break;
+    case PRIORITY:
+      p->accumulator += p->priority;
+      pq.put(p);
       break;
   }
   sched();
