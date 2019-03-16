@@ -505,12 +505,14 @@ scheduler(void)
       break;
       case EXPRIORITY:
         while(!pq.isEmpty()){
+          p = 0;
           if(ticks%100 == 0){
             uint longest = 0;
             struct proc *tmp;
             for(tmp = ptable.proc; tmp < &ptable.proc[NPROC]; tmp++){
-              if(p->state == RUNNABLE && tmp->retime > longest){
+              if(tmp->state == RUNNABLE && tmp->retime > longest){
                 p = tmp;
+                longest = tmp->retime;
                 pq.extractProc(p);
               }
             }
