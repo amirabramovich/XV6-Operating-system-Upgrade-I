@@ -2,6 +2,29 @@
 #include "stat.h"
 #include "user.h"
 
+
+void
+test2(void){
+    uint pid;
+    printf(1, "begin test2\n");
+    policy(3);
+    pid = fork();
+    switch (pid)
+    {
+        case 0:
+            priority(0);
+            for(int i=0;i<500;++i)
+                printf(1,".");
+            printf(1,"\nchild done\n");
+            break;
+        default:
+            sleep(5);
+            printf(1,"\ni am not starving!\n");
+            wait(0);
+            printf(1, "parent done\n");
+            printf(1, "end of test2\n");
+    }
+}
 int
 main(int argc, char *argv[])
 {
@@ -11,6 +34,7 @@ main(int argc, char *argv[])
     int third_status;
     int status;
     struct perf performance;
+    printf(1, "begin test1\n");
     pid = fork(); // the child pid is pid
     switch (pid)
     {
@@ -19,7 +43,7 @@ main(int argc, char *argv[])
             switch (pid2)
             {
                 case 0: //child
-                    sleep(15);
+                    sleep(10);
                     printf(1, "grandson done\n");
                     break;
             
@@ -37,11 +61,13 @@ main(int argc, char *argv[])
             break;
         default:
         wait_stat(&status, &performance);
-        printf(2, "status is %d , ctime is %d, ttime is %d\nstime is %d retime is %d, rutime is %d\n",
+        printf(2, "status is %d , ctime is %d, ttime is %d\nstime is %d, retime is %d, rutime is %d\n",
         status, performance.ctime,performance.ttime,
         performance.stime,performance.retime,performance.rutime );
-        sleep(15);
+        sleep(20);
         printf(1, "parent done\n");
+        printf(1, "end of test1\n");
+        test2();
     }
   exit(0);
 }
