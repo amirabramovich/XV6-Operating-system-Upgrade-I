@@ -99,7 +99,8 @@ updateAccumulator(struct proc *p){
   }
 }
 
-void incTick(void) {
+void 
+incTick(void) {
   struct proc *p;
   acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
