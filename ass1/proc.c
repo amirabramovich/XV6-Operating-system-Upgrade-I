@@ -25,7 +25,7 @@ static struct proc *initproc;
 
 int nextpid = 1;
 int pol = ROUND;
-uint time = 0;
+
 extern void forkret(void);
 extern void trapret(void);
 
@@ -497,6 +497,37 @@ scheduler(void)
           c->proc = 0;
         }
       break;
+      case EXPRIORITY:
+        while(!pq.isEmpty()){
+          if(ticks%100 == 0){
+            uint longest = 0;
+            struct proc *tmp;
+            for(tmp = ptable.proc; tmp < &ptable.proc[NPROC]; tmp++)
+              if(tmp->retime > longest)
+                p = tmp;
+          }
+          else
+            p = pq.extractMin();
+          if(p == null)
+            panic("dequeue null");
+          if(p->state != RUNNABLE)
+            panic("dequeue non runnable");
+          // Switch to chosen process.  It is the process's job
+          // to release ptable.lock and then reacquire it
+          // before jumping back to us.
+          c->proc = p;
+          switchuvm(p);
+          p->state = RUNNING;
+          rpholder.add(p);
+
+          swtch(&(c->scheduler), p->context);
+          switchkvm();
+
+          // Process is done running for now.
+          // It should have changed its p->state before coming back.
+          c->proc = 0;
+        }
+      break;
       default:
         while(!rrq.isEmpty()){
           p = rrq.dequeue();
@@ -520,27 +551,7 @@ scheduler(void)
           c->proc = 0;
         }
     }
-
-    // for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    //   if(p->state != RUNNABLE)
-    //     continue;
-
-    //   // Switch to chosen process.  It is the process's job
-    //   // to release ptable.lock and then reacquire it
-    //   // before jumping back to us.
-    //   c->proc = p;
-    //   switchuvm(p);
-    //   p->state = RUNNING;
-
-    //   swtch(&(c->scheduler), p->context);
-    //   switchkvm();
-
-    //   // Process is done running for now.
-    //   // It should have changed its p->state before coming back.
-    //   c->proc = 0;
-    // }
     release(&ptable.lock);
-
   }
 }
 
