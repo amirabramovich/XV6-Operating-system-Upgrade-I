@@ -61,6 +61,14 @@ struct proc {
   uint rutime;                   // the total time the process spent in the RUNNING state.
 };
 
+struct perf {
+  int ctime;
+  int ttime;
+  int stime;
+  int retime;
+  int rutime;
+};
+
 // Process memory is laid out contiguously, low addresses first:
 //   text
 //   original data and bss

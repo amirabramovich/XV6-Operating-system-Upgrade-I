@@ -44,14 +44,33 @@ sys_detach(void)
 int
 sys_exit(void)
 {
-  exit(0);
+  int status;
+
+  if(argint(0, &status) < 0)
+    return -1;
+  exit(status);
   return 0;  // not reached
 }
 
 int
 sys_wait(void)
 {
-  return wait(0);
+  int status;
+  
+  if (argint(0, &status) < 0)
+    return -1;
+  return wait((int *) status);
+}
+
+int
+sys_wait_stat(void)
+{
+  int status;
+  int performance;
+
+  if (argint(0, &status) < 0 || argint(1, &performance) < 0)
+    return -1;
+  return wait_stat((int *) status, (struct perf *) performance); 
 }
 
 int

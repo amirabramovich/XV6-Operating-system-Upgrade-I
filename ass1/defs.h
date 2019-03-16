@@ -2,6 +2,7 @@ struct buf;
 struct context;
 struct file;
 struct inode;
+struct perf;
 struct pipe;
 struct proc;
 struct rtcdate;
@@ -121,6 +122,7 @@ void            setproc(struct proc*);
 void            sleep(void*, struct spinlock*);
 void            userinit(void);
 int             wait(int*);
+int             wait_stat(int*, struct perf*);
 void            wakeup(void*);
 void            yield(void);
 
