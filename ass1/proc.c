@@ -208,6 +208,9 @@ userinit(void)
     case PRIORITY:
       pq.put(p);
       break;
+    case EXPRIORITY:
+      pq.put(p);
+      break;
   }
 
   release(&ptable.lock);
@@ -280,6 +283,9 @@ fork(void)
       rrq.enqueue(np);
       break;
     case PRIORITY:
+      pq.put(np);
+      break;
+    case EXPRIORITY:
       pq.put(np);
       break;
   }
@@ -502,9 +508,12 @@ scheduler(void)
           if(ticks%100 == 0){
             uint longest = 0;
             struct proc *tmp;
-            for(tmp = ptable.proc; tmp < &ptable.proc[NPROC]; tmp++)
-              if(tmp->retime > longest)
+            for(tmp = ptable.proc; tmp < &ptable.proc[NPROC]; tmp++){
+              if(p->state == RUNNABLE && tmp->retime > longest){
                 p = tmp;
+                pq.extractProc(p);
+              }
+            }
           }
           else
             p = pq.extractMin();
@@ -599,6 +608,10 @@ yield(void)
       p->accumulator += p->priority;
       pq.put(p);
       break;
+    case EXPRIORITY:
+      p->accumulator += p->priority;
+      pq.put(p);
+      break;
   }
   sched();
   release(&ptable.lock);
@@ -685,6 +698,9 @@ wakeup1(void *chan)
         case PRIORITY:
           pq.put(p);
           break;
+        case EXPRIORITY:
+          pq.put(p);
+          break;
       }
       updateAccumulator(p);
     }
@@ -719,6 +735,9 @@ kill(int pid)
             rrq.enqueue(p);
             break;
           case PRIORITY:
+            pq.put(p);
+            break;
+          case EXPRIORITY:
             pq.put(p);
             break;
         }
