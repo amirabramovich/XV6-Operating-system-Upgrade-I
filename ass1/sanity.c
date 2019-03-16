@@ -7,20 +7,20 @@ void
 test2(void){
     uint pid;
     printf(1, "begin test2\n");
-    policy(3);
+    policy(2);
     pid = fork();
     switch (pid)
     {
         case 0:
+            sleep(20);
             priority(0);
-            for(int i=0;i<500;++i)
+            for(;;)
                 printf(1,".");
             printf(1,"\nchild done\n");
             break;
         default:
-            sleep(5);
+            for(;;)
             printf(1,"\ni am not starving!\n");
-            wait(0);
             printf(1, "parent done\n");
             printf(1, "end of test2\n");
     }
