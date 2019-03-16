@@ -9,3 +9,11 @@ struct stat {
   short nlink; // Number of links to file
   uint size;   // Size of file in bytes
 };
+
+struct perf {
+    int ctime;
+    int ttime;
+    int stime;
+    int retime;
+    int rutime;
+};

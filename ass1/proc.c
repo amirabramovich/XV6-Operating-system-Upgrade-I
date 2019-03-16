@@ -21,6 +21,14 @@ struct {
   struct proc proc[NPROC];
 } ptable;
 
+struct perf {
+    int ctime;
+    int ttime;
+    int stime;
+    int retime;
+    int rutime;
+};
+
 static struct proc *initproc;
 
 int nextpid = 1;
