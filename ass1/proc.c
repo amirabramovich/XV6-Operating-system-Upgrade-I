@@ -99,6 +99,20 @@ updateAccumulator(struct proc *p){
   }
 }
 
+void incTick(void) {
+  struct proc *p;
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if (p->state == SLEEPING)
+        p->stime++;
+      if (p->state == RUNNABLE)
+        p->retime++;
+      if (p->state == RUNNING)
+        p->rutime++;
+  }
+  release(&ptable.lock);
+}
+
 //PAGEBREAK: 32
 // Look in the process table for an UNUSED proc.
 // If found, change state to EMBRYO and initialize
@@ -123,7 +137,7 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
   p->priority = 5;
-
+  p->ctime = ticks;
   updateAccumulator(p);
 
   release(&ptable.lock);
@@ -321,6 +335,7 @@ exit(int status)
   if(curproc->state == RUNNING)
     if(!rpholder.remove(curproc))
       panic("remove running");
+  curproc->ttime = ticks;
   curproc->state = ZOMBIE;
   sched();
   panic("zombie exit");
