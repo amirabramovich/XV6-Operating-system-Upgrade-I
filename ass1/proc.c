@@ -510,12 +510,12 @@ scheduler(void)
             uint longest = 0;
             struct proc *tmp;
             for(tmp = ptable.proc; tmp < &ptable.proc[NPROC]; tmp++){
-              if(tmp->state == RUNNABLE && tmp->retime > longest){
-                p = tmp;
+              if(tmp->state == RUNNABLE && tmp->retime >= longest){
                 longest = tmp->retime;
-                pq.extractProc(p);
+                p = tmp;
               }
             }
+            pq.extractProc(p);
           }
           else
             p = pq.extractMin();
