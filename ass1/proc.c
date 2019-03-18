@@ -450,6 +450,12 @@ wait(int *status)
         // Pass status if pointer is not null
         if(status != 0)
           *status = p->status; 
+        p->status = 0;
+        p->ctime = 0;
+        p->ttime = 0;
+        p->stime = 0;
+        p->retime = 0;
+        p->rutime = 0;
         release(&ptable.lock);
         return pid;
       }
@@ -502,6 +508,12 @@ wait_stat(int *status, struct perf *performance)
         performance->stime = p->stime;
         performance->retime = p->retime;
         performance->rutime = p->rutime;
+        p->status = 0;
+        p->ctime = 0;
+        p->ttime = 0;
+        p->stime = 0;
+        p->retime = 0;
+        p->rutime = 0;
         release(&ptable.lock);
         return pid;
       }
