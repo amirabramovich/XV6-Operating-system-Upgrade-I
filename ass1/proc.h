@@ -54,11 +54,11 @@ struct proc {
   int status;                    // Process exit status
   int priority;                  // Process priority
   long long accumulator;         // Process accumulator
-  uint ctime;                    // process creation time.
-  uint ttime;                    // process termination time.
-  uint stime;                    // the total time the process spent in the SLEEPING state.
-  uint retime;                   // the total time the process spent in the READY state.
-  uint rutime;                   // the total time the process spent in the RUNNING state.
+  int ctime;                    // process creation time.
+  int ttime;                    // process termination time.
+  int stime;                    // the total time the process spent in the SLEEPING state.
+  int retime;                   // the total time the process spent in the READY state.
+  int rutime;                   // the total time the process spent in the RUNNING state.
 };
 
 // Process memory is laid out contiguously, low addresses first:
