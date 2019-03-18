@@ -103,29 +103,48 @@ run_fib(int num){
     
 }
 
-//Runs fibbonaci "n" times on each policy and prints performances
+//Runs fibbonaci "n" times with "k" forks on each policy and prints performances
 void 
-test3(int n){
+test3(int n, int forks, int fib_num){
     struct perf performance;
-    const int fib_num = 30;
+    int stime[4];
+    int retime[4];
+    int rutime[4];
+    for(int i=1;i<=3;++i){
+        stime[i]=0;
+        retime[i]=0;
+        rutime[i]=0;
+    }
     printf(1, "begin test3\n");
     printf(1, "policy|ctime|ttime|stime|retime|rutime\n");
     for(int j=0;j<n;++j)
         for(int i=1;i<=3;++i){
             policy(i);
-            performance = run_fib(fib_num);
-            printf(2, "    %d | %d | %d | %d   | %d    | %d\n",
-            i,performance.ctime,performance.ttime,
-            performance.stime,performance.retime,performance.rutime );
+            for(int k=0;k<forks;++k){
+                performance = run_fib(fib_num);
+                printf(2, "    %d | %d | %d | %d   | %d    | %d\n",
+                i,performance.ctime,performance.ttime,
+                performance.stime,performance.retime,performance.rutime );
+                stime[i]+=performance.stime;
+                retime[i]+=performance.retime;
+                rutime[i]+=performance.rutime;
+            }
         }
+    for(int i=1;i<=3;++i){
+        stime[i]/=(n*forks);
+        retime[i]/=(n*forks);
+        rutime[i]/=(n*forks);
+        printf(2, "average policy %d stime %d retime %d rutime %d\n",
+        i, stime[i], retime[i], rutime[i]);
+    }
     printf(1, "done test3\n");
 }
 
 int
 main(int argc, char *argv[]){
     test1();
-    test2();
-    test3(3);
+    //test2();
+    test3(2,3,30);
     exit(0);
 }
 
